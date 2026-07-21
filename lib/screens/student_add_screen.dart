@@ -386,6 +386,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       if (admissionPayment > 0) {
         payments.add(
           FeePayment(
+            rollNumber: rollNumberController.text.trim(),
             amount: admissionPayment,
             paymentDate: DateTime.now(),
             paymentMethod: PaymentMethod.Cash,

@@ -1,8 +1,10 @@
+import 'package:intl/intl.dart';
+
 enum Gender { Male, Female, Others }
 
 enum StudentStatus { Active, Completed, Droped }
 
-enum FeesStatus { Paid, Due }
+enum FeesStatus { Paid, Due, None }
 
 enum BatchTiming { Morning, Evening }
 
@@ -57,6 +59,34 @@ class StudentModel {
     final due = totalFees - feesPaid;
     return due < 0 ? 0 : due;
   }
+
+  FeePayment? get lastPayment {
+    if (payments.isEmpty) {
+      return null;
+    }
+
+    payments.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+
+    return payments.first;
+  }
+
+  DateTime? get nextDueDate {
+    if (lastPayment == null) {
+      return joiningDate.add(const Duration(days: 30));
+    }
+
+    return lastPayment!.paymentDate.add(const Duration(days: 30));
+  }
+
+  String get dueDateText {
+    if (nextDueDate == null) {
+      return "No pending due date";
+    }
+
+    return "Due Date: ${DateFormat('dd MMM yyyy').format(nextDueDate!)}";
+  }
+
+  bool get isFullyPaid => feesDues <= 0;
 
   FeesStatus get feeStatus => feesDues <= 0 ? FeesStatus.Paid : FeesStatus.Due;
 
@@ -185,14 +215,8 @@ StudentModel(
   }
 }
 
-///
-/// ------------------------------
-/// Fee Payment Model
-/// ------------------------------
-///
-
 class FeePayment {
-  final int? id;
+  final String rollNumber;
 
   final double amount;
 
@@ -204,13 +228,10 @@ class FeePayment {
 
   final String? receivedBy;
 
-  final DateTime? createdAt;
-
   FeePayment({
-    this.id,
+    required this.rollNumber,
     this.remarks,
     this.receivedBy,
-    this.createdAt,
     required this.amount,
     required this.paymentDate,
     required this.paymentMethod,
@@ -218,19 +239,18 @@ class FeePayment {
 
   Map<String, dynamic> toJson() {
     return {
-      "id": id,
+      "roll_number": rollNumber,
       "amount": amount,
       "payment_date": paymentDate.toIso8601String().split('T').first,
       "payment_method": paymentMethod.name,
       "received_by": receivedBy,
-      "created_at": createdAt,
       "remarks": remarks,
     };
   }
 
   factory FeePayment.fromJson(Map<String, dynamic> json) {
     return FeePayment(
-      id: json["id"],
+      rollNumber: json["roll_number"],
 
       amount: (json["amount"] as num).toDouble(),
 
@@ -244,30 +264,6 @@ class FeePayment {
       remarks: json["remarks"],
 
       receivedBy: json["received_by"],
-
-      createdAt: json["created_at"] != null
-          ? DateTime.parse(json["created_at"])
-          : null,
-    );
-  }
-
-  FeePayment copyWith({
-    double? amount,
-    DateTime? paymentDate,
-    PaymentMethod? paymentMethod,
-    int? id,
-    String? remarks,
-    String? receivedBy,
-    DateTime? createdAt,
-  }) {
-    return FeePayment(
-      amount: amount ?? this.amount,
-      paymentDate: paymentDate ?? this.paymentDate,
-      paymentMethod: paymentMethod ?? this.paymentMethod,
-      id: id,
-      remarks: remarks,
-      receivedBy: receivedBy,
-      createdAt: createdAt,
     );
   }
 

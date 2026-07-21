@@ -7,7 +7,8 @@ import 'package:stdent_management_system/model/student_model.dart';
 import 'package:stdent_management_system/services/storage_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://192.168.1.5:8000';
+  static const String baseUrl =
+      'https://python-coaching-backend-cx0t.onrender.com';
   static const FlutterSecureStorage _storage = FlutterSecureStorage();
 
   static Future<Map<String, String>> _authHeaders() async {
@@ -74,5 +75,22 @@ class ApiService {
     }
     log('asldkjfa;lsdjf;lkasjd;flkajsdl;kf');
     throw Exception(jsonDecode(response.body)["detail"]);
+  }
+
+  static Future<void> collectFee({required FeePayment payment}) async {
+    final token = await StorageService.getToken();
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/fee-payments/"),
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer $token",
+      },
+      body: jsonEncode(payment.toJson()),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception(jsonDecode(response.body)["detail"]);
+    }
   }
 }

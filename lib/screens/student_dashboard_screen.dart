@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
+import 'package:stdent_management_system/components/app_currency_formatter.dart';
 import 'package:stdent_management_system/model/student_model.dart';
 import 'package:stdent_management_system/provider/student_provider.dart';
 import 'package:stdent_management_system/screens/student_add_screen.dart';
@@ -19,6 +20,7 @@ class StudentDashboardScreen extends StatefulWidget {
 
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  TextEditingController searchController = TextEditingController();
 
   final months = [
     "Jan",
@@ -58,19 +60,19 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTopBar(),
-                const SizedBox(height: 20),
-                _buildSearchBar(),
-                const SizedBox(height: 20),
-                const SizedBox(height: 20),
-                _buildSectionHeader("Overview"),
+                // const SizedBox(height: 20),
+                // _buildSearchBar(context),
+                // const SizedBox(height: 20),
+                const SizedBox(height: 16),
+                _buildSectionDivider(),
                 const SizedBox(height: 14),
 
                 GridView.count(
                   crossAxisCount: 2,
                   shrinkWrap: true,
                   physics: NeverScrollableScrollPhysics(),
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
+                  crossAxisSpacing: 10,
+                  mainAxisSpacing: 10,
                   childAspectRatio: 0.88,
                   children: [
                     _buildStatCard(
@@ -83,7 +85,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
 
                     _buildStatCard(
                       title: "Fees Due",
-                      value: "₹${formatAmount(provider.totalFeesDues)}",
+                      value: (formatAmount(provider.totalFeesDues)),
                       subtitle: "Pending Collection",
                       icon: Icons.account_balance_wallet,
                       color: Colors.orange,
@@ -135,8 +137,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _actionButton(
-                        title: "Attendance",
-                        subtitle: "Mark daily status",
+                        title: "Add Payment",
+                        subtitle: "Fees",
                         icon: Icons.fact_check_rounded,
                         color: const Color(0xFF22C55E),
                         onTap: () {},
@@ -152,75 +154,224 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     );
   }
 
-  String formatAmount(double amount) {
-    if (amount >= 10000000) {
-      return "${(amount / 10000000).toStringAsFixed(1)}Cr";
-    }
-
-    if (amount >= 100000) {
-      return "${(amount / 100000).toStringAsFixed(1)}L";
-    }
-
-    if (amount >= 1000) {
-      return "${(amount / 1000).toStringAsFixed(0)}K";
-    }
-
-    return amount.toStringAsFixed(0);
-  }
-
-  Widget _buildTopBar() {
+  Widget _buildSectionDivider() {
     return Row(
       children: [
-        // _glassIconButton(
-        //   icon: Icons.menu_rounded,
-        //   onTap: () => _scaffoldKey.currentState?.openDrawer(),
-        // ),
-        const SizedBox(width: 12),
-        const Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+          decoration: BoxDecoration(
+            color: const Color(0xFF6C63FF).withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                "Institute",
-                style: TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: Color(0xFF111827),
-                ),
+              Icon(
+                Icons.insights_rounded,
+                size: 13,
+                color: const Color(0xFF6C63FF).withValues(alpha: 0.85),
               ),
-              SizedBox(height: 4),
+              const SizedBox(width: 5),
               Text(
-                "Student Management",
+                "OVERVIEW",
                 style: TextStyle(
-                  fontSize: 13,
-                  color: Color(0xFF6B7280),
-                  fontWeight: FontWeight.w500,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.6,
+                  color: const Color(0xFF6C63FF).withValues(alpha: 0.85),
                 ),
               ),
             ],
           ),
         ),
-        Container(
-          padding: const EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            gradient: const LinearGradient(
-              colors: [Color(0xFF8B5CF6), Color(0xFF6366F1)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF8B5CF6).withValues(alpha: 0.25),
-                blurRadius: 16,
-                offset: const Offset(0, 8),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Container(
+            height: 1,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFFE5E7EB),
+                  const Color(0xFFE5E7EB).withValues(alpha: 0),
+                ],
               ),
-            ],
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSearchBar() {
+  String _getDayName(int day) {
+    const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
+    return days[day - 1];
+  }
+
+  Widget _buildTopBar() {
+    final hour = DateTime.now().hour;
+    final now = DateTime.now();
+    final date =
+        "${_getDayName(now.weekday)}, ${now.day} ${months[now.month - 1]}";
+
+    String greeting = "Good Morning";
+    if (hour >= 12 && hour < 17) {
+      greeting = "Good Afternoon";
+    } else if (hour >= 17) {
+      greeting = "Good Evening";
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // Institute badge + name
+        Container(
+          height: 42,
+          width: 42,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(13),
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF0D9488).withValues(alpha: 0.28),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: const Icon(
+            Icons.school_rounded,
+            color: Colors.white,
+            size: 22,
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                "Institute",
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF111827),
+                  letterSpacing: -.2,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                "$greeting · $date",
+                style: const TextStyle(
+                  fontSize: 11.5,
+                  color: Color(0xFF6B7280),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 10),
+        _topBarButton(Icons.notifications_none_rounded, showDot: true),
+        const SizedBox(width: 8),
+        _profileButton(),
+      ],
+    );
+  }
+
+  Widget _topBarButton(IconData icon, {bool showDot = false}) {
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        Container(
+          height: 42,
+          width: 42,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.75),
+            borderRadius: BorderRadius.circular(13),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.9)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 14,
+                offset: const Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Icon(icon, color: const Color(0xFF374151), size: 21),
+        ),
+        if (showDot)
+          Positioned(
+            top: 8,
+            right: 8,
+            child: Container(
+              height: 8,
+              width: 8,
+              decoration: BoxDecoration(
+                color: const Color(0xFFEF4444),
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 1.5),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _profileButton() {
+    return Container(
+      height: 42,
+      width: 42,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF22C55E), Color(0xFF16A34A)],
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF22C55E).withValues(alpha: 0.25),
+            blurRadius: 12,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: const Center(
+        child: Text(
+          "A",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
+        ),
+      ),
+    );
+  }
+
+  String formatAmount(double amount) {
+    // if (amount >= 10000000) {
+    //   return "${(amount / 10000000).toStringAsFixed(1)}Cr";
+    // }
+
+    // if (amount >= 100000) {
+    //   return "${(amount / 100000).toStringAsFixed(1)}L";
+    // }
+
+    // if (amount >= 1000) {
+    //   return "${(amount / 1000).toStringAsFixed(1)}K";
+    // }
+
+    return AppFormatter.formatCurrency(amount);
+  }
+
+  Widget _buildSearchBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14),
       height: 58,
@@ -240,18 +391,19 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
         children: [
           const Icon(Icons.search_rounded, color: Color(0xFF9CA3AF)),
           const SizedBox(width: 10),
-          const Expanded(
+          Expanded(
             child: TextField(
-              decoration: InputDecoration(
+              controller: searchController,
+              onChanged: (value) {
+                context.read<StudentProvider>().searchStudents(value);
+              },
+              decoration: const InputDecoration(
                 border: InputBorder.none,
                 hintText: "Search students, batches, courses...",
-                hintStyle: TextStyle(
-                  color: Color(0xFF9CA3AF),
-                  fontWeight: FontWeight.w500,
-                ),
               ),
             ),
           ),
+
           Container(
             height: 40,
             width: 40,
@@ -271,7 +423,8 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
 
   Widget _buildFeesCard(Size size) {
     final provider = Provider.of<StudentProvider>(context);
-
+    final growth = provider.collectionGrowthPercentage;
+    final isGrowing = provider.isCollectionGrowing;
     return _glassCard(
       padding: const EdgeInsets.all(18),
       child: Column(
@@ -294,48 +447,36 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           ),
           const SizedBox(height: 18),
           Text(
-            "₹${formatAmount(provider.totalFeesPaid)}",
+            AppFormatter.formatCurrency(provider.totalFeesPaid),
             style: TextStyle(
-              fontSize: 30,
+              fontSize: 27,
               fontWeight: FontWeight.w800,
               color: Color(0xFF111827),
             ),
           ),
           const SizedBox(height: 6),
-          const Row(
+          Row(
             children: [
               Icon(
-                Icons.trending_up_rounded,
-                color: Color(0xFF16A34A),
+                isGrowing
+                    ? Icons.trending_up_rounded
+                    : Icons.trending_down_rounded,
+                color: isGrowing ? Colors.green : Colors.red,
                 size: 18,
               ),
-              SizedBox(width: 6),
+
+              const SizedBox(width: 6),
+
               Text(
-                "+18% from last month",
+                "${growth.abs().toStringAsFixed(1)}% from last month",
                 style: TextStyle(
-                  color: Color(0xFF16A34A),
+                  color: isGrowing ? Colors.green : Colors.red,
                   fontWeight: FontWeight.w700,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 22),
-          // Container(
-          //   height: 130,
-          //   decoration: BoxDecoration(
-          //     borderRadius: BorderRadius.circular(20),
-          //     gradient: LinearGradient(
-          //       colors: [
-          //         const Color(0xFF6C63FF).withValues(alpha: 0.10),
-          //         const Color(0xFF60A5FA).withValues(alpha: 0.06),
-          //       ],
-          //     ),
-          //   ),
-          // child: CustomPaint(
-          //   size: Size(size.width, 130),
-          //   painter: LinePainter(values: provider.monthlyFeesCollection),
-          // ),
-          // ),
         ],
       ),
     );
@@ -349,7 +490,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     required Color color,
   }) {
     return _glassCard(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.only(left: 10, top: 16, bottom: 16, right: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -375,7 +516,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           Text(
             value,
             style: const TextStyle(
-              fontSize: 28,
+              fontSize: 20,
               fontWeight: FontWeight.w800,
               color: Color(0xFF111827),
             ),
@@ -384,7 +525,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
           Text(
             title,
             style: const TextStyle(
-              fontSize: 15,
+              fontSize: 14,
               fontWeight: FontWeight.w700,
               color: Color(0xFF374151),
             ),
