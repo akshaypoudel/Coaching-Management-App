@@ -60,6 +60,14 @@ class StudentModel {
     return due < 0 ? 0 : due;
   }
 
+  List<FeePayment> get paymentHistory {
+    final history = List<FeePayment>.from(payments);
+
+    history.sort((a, b) => b.paymentDate.compareTo(a.paymentDate));
+
+    return history;
+  }
+
   FeePayment? get lastPayment {
     if (payments.isEmpty) {
       return null;
@@ -160,58 +168,22 @@ class StudentModel {
     );
   }
 
-  /// --------------------------
-  /// COPY WITH
-  /// --------------------------
-
-  StudentModel copyWith({
-    String? rollNumber,
-    String? name,
-    String? fatherName,
-    String? parentsPhone,
-    String? email,
-    Gender? gender,
-    String? phone,
-    DateTime? dob,
-    String? address,
-    BatchTiming? batchTime,
-    DateTime? joiningDate,
-    double? totalFees,
-    List<FeePayment>? payments,
-    StudentStatus? studentStatus,
-    String? course,
-  }) {
-    return StudentModel(
-      rollNumber: rollNumber ?? this.rollNumber,
-      name: name ?? this.name,
-      fatherName: fatherName ?? this.fatherName,
-      parentsPhone: parentsPhone ?? this.parentsPhone,
-      email: email ?? this.email,
-      gender: gender ?? this.gender,
-      phone: phone ?? this.phone,
-      dob: dob ?? this.dob,
-      address: address ?? this.address,
-      batchTime: batchTime ?? this.batchTime,
-      joiningDate: joiningDate ?? this.joiningDate,
-      totalFees: totalFees ?? this.totalFees,
-      payments: payments ?? this.payments,
-      studentStatus: studentStatus ?? this.studentStatus,
-      course: course ?? this.course,
-    );
-  }
-
-  @override
-  String toString() {
-    return '''
-StudentModel(
-  Roll Number : $rollNumber
-  Name        : $name
-  Course      : $course
-  Fees Paid   : $feesPaid
-  Fees Due    : $feesDues
-  Status      : ${studentStatus.name}
-)
-''';
+  Map<String, dynamic> toUpdateJson() {
+    return {
+      "name": name,
+      "father_name": fatherName,
+      "parents_phone": parentsPhone,
+      "phone": phone,
+      "email": email,
+      "gender": gender.name,
+      "dob": dob.toIso8601String().split("T").first,
+      "address": address,
+      "batch_time": batchTime.name,
+      "joining_date": joiningDate.toIso8601String().split("T").first,
+      "total_fees": totalFees,
+      "student_status": studentStatus.name,
+      "course": course,
+    };
   }
 }
 
@@ -241,7 +213,7 @@ class FeePayment {
     return {
       "roll_number": rollNumber,
       "amount": amount,
-      "payment_date": paymentDate.toIso8601String().split('T').first,
+      "payment_date": paymentDate.toIso8601String(),
       "payment_method": paymentMethod.name,
       "received_by": receivedBy,
       "remarks": remarks,

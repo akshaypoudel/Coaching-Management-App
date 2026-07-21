@@ -78,12 +78,12 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
           height: _navVisualHeight,
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.88),
+            color: Colors.white.withValues(alpha: 0.88),
             borderRadius: BorderRadius.circular(26),
             border: Border.all(color: Colors.white),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.07),
+                color: Colors.black.withValues(alpha: 0.07),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),

@@ -33,7 +33,7 @@ class LinePainter extends CustomPainter {
 
     /// GLOW EFFECT
     final glowPaint = Paint()
-      ..color = Colors.deepPurple.withOpacity(0.15)
+      ..color = Colors.deepPurple.withValues(alpha: 0.15)
       ..strokeWidth = 10
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
@@ -41,7 +41,7 @@ class LinePainter extends CustomPainter {
 
     /// GRID
     final gridPaint = Paint()
-      ..color = Colors.grey.withOpacity(0.12)
+      ..color = Colors.grey.withValues(alpha: 0.12)
       ..strokeWidth = 1;
 
     for (double i = 0; i <= size.height; i += 30) {

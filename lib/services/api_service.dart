@@ -73,7 +73,19 @@ class ApiService {
     if (response.statusCode == 200 || response.statusCode == 201) {
       return StudentModel.fromJson(jsonDecode(response.body));
     }
-    log('asldkjfa;lsdjf;lkasjd;flkajsdl;kf');
+    throw Exception(jsonDecode(response.body)["detail"]);
+  }
+
+  static Future<StudentModel> updateStudent(StudentModel student) async {
+    final response = await http.put(
+      Uri.parse("$baseUrl/students/${student.rollNumber}"),
+      headers: await _authHeaders(),
+      body: jsonEncode(student.toUpdateJson()),
+    );
+
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      return StudentModel.fromJson(jsonDecode(response.body));
+    }
     throw Exception(jsonDecode(response.body)["detail"]);
   }
 

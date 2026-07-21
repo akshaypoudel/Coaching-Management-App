@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -79,33 +80,6 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F7FB),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(18),
-          gradient: const LinearGradient(
-            colors: [Color(0xFF6D5DF6), Color(0xFF8B5CF6)],
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF6D5DF6).withOpacity(0.25),
-              blurRadius: 18,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        ),
-        child: FloatingActionButton.extended(
-          heroTag: "fees_add",
-          elevation: 0,
-          backgroundColor: Colors.transparent,
-          onPressed: () {},
-          icon: const Icon(Icons.add_rounded, color: Colors.white),
-          label: const Text(
-            "Add Payment",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
-          ),
-        ),
-      ),
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
@@ -199,7 +173,7 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
                         vertical: 3,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFF6D5DF6).withOpacity(0.10),
+                        color: const Color(0xFF6D5DF6).withValues(alpha: 0.10),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -270,7 +244,7 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
           Icon(
             Icons.search_off_rounded,
             size: 48,
-            color: Colors.grey.withOpacity(0.4),
+            color: Colors.grey.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 12),
           const Text(
@@ -313,12 +287,12 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
         child: Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.84),
+            color: Colors.white.withValues(alpha: 0.84),
             borderRadius: BorderRadius.circular(28),
             border: Border.all(color: Colors.white),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.04),
+                color: Colors.black.withValues(alpha: 0.04),
                 blurRadius: 18,
                 offset: const Offset(0, 10),
               ),
@@ -334,7 +308,7 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [accent, accent.withOpacity(0.75)],
+                        colors: [accent, accent.withValues(alpha: 0.75)],
                       ),
                     ),
                     child: Center(
@@ -423,10 +397,14 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
                       icon: Icons.currency_rupee_rounded,
                       color: const Color(0xFF22C55E),
                       onTap: () {
-                        showCollectFeesBottomSheet(
-                          context: context,
-                          student: fee,
-                        );
+                        if (fee.isFullyPaid) {
+                          showFullyPaidDialog();
+                        } else {
+                          showCollectFeesBottomSheet(
+                            context: context,
+                            student: fee,
+                          );
+                        }
                       },
                     ),
                   ),
@@ -436,6 +414,49 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<dynamic> showFullyPaidDialog() {
+    return showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          title: const Row(
+            children: [
+              Icon(Icons.check_circle_rounded, color: Colors.green, size: 28),
+              SizedBox(width: 10),
+              Text(
+                "Fees Completed",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
+          content: const Text(
+            "This student has already paid all the fees. There is no need to collect any additional fees.",
+            style: TextStyle(fontSize: 15, color: Colors.black87, height: 1.4),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text(
+                "OK",
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  color: Colors.blue,
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -450,10 +471,13 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
     PaymentMethod selectedMethod = PaymentMethod.Cash;
 
     final formKey = GlobalKey<FormState>();
+    bool isLoading = false;
 
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
       backgroundColor: Colors.transparent,
       builder: (context) {
         return StatefulBuilder(
@@ -468,227 +492,324 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
                   color: Colors.white,
                   borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
                 ),
-                child: Form(
-                  key: formKey,
-                  child: SingleChildScrollView(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Center(
-                          child: Container(
-                            width: 55,
-                            height: 5,
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade300,
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        const Text(
-                          "Collect Fees",
-                          style: TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-
-                        const SizedBox(height: 20),
-
-                        Container(
-                          padding: const EdgeInsets.all(15),
-                          decoration: BoxDecoration(
-                            color: Colors.deepPurple.withOpacity(.05),
-                            borderRadius: BorderRadius.circular(18),
-                          ),
-                          child: Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 28,
-                                backgroundColor: Colors.deepPurple,
-                                child: Text(
-                                  student.name[0].toUpperCase(),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 20,
-                                  ),
+                child: Stack(
+                  children: [
+                    Form(
+                      key: formKey,
+                      child: SingleChildScrollView(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Center(
+                              child: Container(
+                                width: 55,
+                                height: 5,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade300,
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
+                            ),
 
-                              const SizedBox(width: 15),
+                            const SizedBox(height: 20),
 
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      student.name,
+                            const Text(
+                              "Collect Fees",
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+
+                            const SizedBox(height: 20),
+
+                            Container(
+                              padding: const EdgeInsets.all(15),
+                              decoration: BoxDecoration(
+                                color: Colors.deepPurple.withValues(alpha: .05),
+                                borderRadius: BorderRadius.circular(18),
+                              ),
+                              child: Row(
+                                children: [
+                                  CircleAvatar(
+                                    radius: 28,
+                                    backgroundColor: Colors.deepPurple,
+                                    child: Text(
+                                      student.name[0].toUpperCase(),
                                       style: const TextStyle(
+                                        color: Colors.white,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 18,
+                                        fontSize: 20,
                                       ),
                                     ),
+                                  ),
 
-                                    const SizedBox(height: 4),
+                                  const SizedBox(width: 15),
 
-                                    Text(student.course),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          student.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 18,
+                                          ),
+                                        ),
 
-                                    const SizedBox(height: 4),
+                                        const SizedBox(height: 4),
 
+                                        Text(student.course),
+
+                                        const SizedBox(height: 4),
+
+                                        Text(
+                                          "Pending : ${AppFormatter.formatCurrency(student.feesDues)}",
+                                          style: const TextStyle(
+                                            color: Colors.red,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 25),
+
+                            TextFormField(
+                              controller: amountController,
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              decoration: InputDecoration(
+                                labelText: "Amount",
+                                prefixIcon: const Icon(Icons.currency_rupee),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.trim().isEmpty) {
+                                  return "Enter amount";
+                                }
+
+                                final amount = double.tryParse(value);
+
+                                if (amount == null) {
+                                  return "Invalid amount";
+                                }
+
+                                if (amount <= 0) {
+                                  return "Amount must be greater than 0";
+                                }
+
+                                if (amount > student.feesDues) {
+                                  return "Amount cannot exceed pending fees";
+                                }
+
+                                return null;
+                              },
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            DropdownButtonFormField<PaymentMethod>(
+                              value: selectedMethod,
+                              decoration: InputDecoration(
+                                labelText: "Payment Method",
+                                prefixIcon: const Icon(
+                                  Icons.account_balance_wallet,
+                                ),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                              items: PaymentMethod.values.map((e) {
+                                return DropdownMenuItem(
+                                  value: e,
+                                  child: Text(e.name),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  selectedMethod = value!;
+                                });
+                              },
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            TextFormField(
+                              controller: receivedByController,
+                              decoration: InputDecoration(
+                                labelText: "Received By",
+                                prefixIcon: const Icon(Icons.person),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            TextFormField(
+                              controller: remarksController,
+                              maxLines: 3,
+                              decoration: InputDecoration(
+                                labelText: "Remarks",
+                                prefixIcon: const Icon(Icons.notes),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(15),
+                                ),
+                              ),
+                            ),
+
+                            const SizedBox(height: 30),
+
+                            SizedBox(
+                              width: double.infinity,
+                              height: 55,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.deepPurpleAccent,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.check_circle),
+                                label: const Text(
+                                  "Collect Fees",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                onPressed: isLoading
+                                    ? null
+                                    : () async {
+                                        if (!formKey.currentState!.validate()) {
+                                          return;
+                                        }
+
+                                        setState(() => isLoading = true);
+                                        try {
+                                          final payment = FeePayment(
+                                            rollNumber: student.rollNumber,
+                                            amount: double.parse(
+                                              amountController.text,
+                                            ),
+                                            paymentDate: DateTime.now(),
+                                            paymentMethod: selectedMethod,
+                                            remarks: remarksController.text
+                                                .trim(),
+                                            receivedBy: receivedByController
+                                                .text
+                                                .trim(),
+                                          );
+
+                                          await context
+                                              .read<StudentProvider>()
+                                              .collectFees(payment);
+
+                                          if (context.mounted) {
+                                            Navigator.pop(context);
+                                          }
+                                        } catch (e) {
+                                          setState(() => isLoading = false);
+                                          log(e.toString());
+
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(e.toString()),
+                                            ),
+                                          );
+                                        }
+                                      },
+                              ),
+                            ),
+
+                            const SizedBox(height: 15),
+                          ],
+                        ),
+                      ),
+                    ),
+                    if (isLoading)
+                      Positioned.fill(
+                        child: AbsorbPointer(
+                          child: Container(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            child: Center(
+                              child: Container(
+                                width: 230,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                  vertical: 26,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.96),
+                                  borderRadius: BorderRadius.circular(24),
+                                  border: Border.all(
+                                    color: Colors.white,
+                                    width: 1.5,
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.12,
+                                      ),
+                                      blurRadius: 30,
+                                      offset: const Offset(0, 15),
+                                    ),
+                                  ],
+                                ),
+                                child: const Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    SizedBox(
+                                      width: 42,
+                                      height: 42,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        color: Colors.deepPurple,
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
                                     Text(
-                                      "Pending : ${AppFormatter.formatCurrency(student.feesDues)}",
-                                      style: const TextStyle(
-                                        color: Colors.red,
-                                        fontWeight: FontWeight.bold,
+                                      "Collecting Fees...",
+                                      style: TextStyle(
+                                        fontSize: 17,
+                                        fontWeight: FontWeight.w700,
+                                        color: Color(0xFF111827),
+                                      ),
+                                    ),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      "Please wait while we save the payment.",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        color: Color(0xFF6B7280),
+                                        height: 1.4,
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 25),
-
-                        TextFormField(
-                          controller: amountController,
-                          keyboardType: const TextInputType.numberWithOptions(
-                            decimal: true,
-                          ),
-                          decoration: InputDecoration(
-                            labelText: "Amount",
-                            prefixIcon: const Icon(Icons.currency_rupee),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                          validator: (value) {
-                            if (value == null || value.trim().isEmpty) {
-                              return "Enter amount";
-                            }
-
-                            final amount = double.tryParse(value);
-
-                            if (amount == null) {
-                              return "Invalid amount";
-                            }
-
-                            if (amount <= 0) {
-                              return "Amount must be greater than 0";
-                            }
-
-                            if (amount > student.feesDues) {
-                              return "Amount cannot exceed pending fees";
-                            }
-
-                            return null;
-                          },
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        DropdownButtonFormField<PaymentMethod>(
-                          value: selectedMethod,
-                          decoration: InputDecoration(
-                            labelText: "Payment Method",
-                            prefixIcon: const Icon(
-                              Icons.account_balance_wallet,
-                            ),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                          items: PaymentMethod.values.map((e) {
-                            return DropdownMenuItem(
-                              value: e,
-                              child: Text(e.name),
-                            );
-                          }).toList(),
-                          onChanged: (value) {
-                            setState(() {
-                              selectedMethod = value!;
-                            });
-                          },
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        TextFormField(
-                          controller: receivedByController,
-                          decoration: InputDecoration(
-                            labelText: "Received By",
-                            prefixIcon: const Icon(Icons.person),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
                             ),
                           ),
                         ),
-
-                        const SizedBox(height: 18),
-
-                        TextFormField(
-                          controller: remarksController,
-                          maxLines: 3,
-                          decoration: InputDecoration(
-                            labelText: "Remarks",
-                            prefixIcon: const Icon(Icons.notes),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(15),
-                            ),
-                          ),
-                        ),
-
-                        const SizedBox(height: 30),
-
-                        SizedBox(
-                          width: double.infinity,
-                          height: 55,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.deepPurpleAccent,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                            ),
-                            icon: const Icon(Icons.check_circle),
-                            label: const Text(
-                              "Collect Fees",
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
-                            onPressed: () async {
-                              if (!formKey.currentState!.validate()) return;
-
-                              final payment = FeePayment(
-                                rollNumber: student.rollNumber,
-                                amount: double.parse(amountController.text),
-                                paymentDate: DateTime.now(),
-                                paymentMethod: selectedMethod,
-                                remarks: remarksController.text.trim(),
-                                receivedBy: receivedByController.text.trim(),
-                              );
-
-                              await context.read<StudentProvider>().collectFees(
-                                payment,
-                              );
-
-                              Navigator.pop(context);
-                            },
-                          ),
-                        ),
-
-                        const SizedBox(height: 15),
-                      ],
-                    ),
-                  ),
+                      ),
+                  ],
                 ),
               ),
             );
@@ -702,7 +823,7 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
+        color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -741,9 +862,9 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          color: color.withOpacity(0.10),
+          color: color.withValues(alpha: 0.10),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.12)),
+          border: Border.all(color: color.withValues(alpha: 0.12)),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -799,12 +920,12 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
     return Container(
       padding: const EdgeInsets.only(left: 12, right: 8, top: 16, bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.86),
+        color: Colors.white.withValues(alpha: 0.86),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.white),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 16,
             offset: const Offset(0, 10),
           ),
@@ -817,7 +938,7 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
             height: 46,
             width: 46,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.12),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(15),
             ),
             child: Icon(icon, color: color),
@@ -873,7 +994,7 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
               decoration: BoxDecoration(
                 color: active
                     ? const Color(0xFFEEF2FF)
-                    : Colors.white.withOpacity(0.88),
+                    : Colors.white.withValues(alpha: 0.88),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: active ? const Color(0xFF6D5DF6) : Colors.white,
@@ -901,12 +1022,12 @@ class _FeesManagementScreenState extends State<FeesManagementScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 14),
       height: 58,
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.86),
+        color: Colors.white.withValues(alpha: 0.86),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.white),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.035),
+            color: Colors.black.withValues(alpha: 0.035),
             blurRadius: 16,
             offset: const Offset(0, 10),
           ),

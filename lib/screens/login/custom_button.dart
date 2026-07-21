@@ -3,7 +3,7 @@ import 'package:stdent_management_system/screens/login/app_textstyles.dart';
 import 'package:stdent_management_system/screens/login/colors.dart';
 
 class CustomButton extends StatelessWidget {
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final String title;
 
   const CustomButton({super.key, required this.onPressed, required this.title});

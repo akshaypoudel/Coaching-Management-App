@@ -2,11 +2,13 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get/get_navigation/src/extension_navigation.dart';
+import 'package:stdent_management_system/components/communication_widget.dart';
 import 'package:stdent_management_system/components/pagination_helper.dart';
 import 'package:stdent_management_system/model/student_model.dart';
 import 'package:stdent_management_system/provider/student_provider.dart';
 import 'package:provider/provider.dart';
 import 'package:stdent_management_system/screens/student_add_screen.dart';
+import 'package:stdent_management_system/screens/student_details_screen.dart';
 
 class StudentsScreen extends StatefulWidget {
   const StudentsScreen({super.key});
@@ -17,6 +19,7 @@ class StudentsScreen extends StatefulWidget {
 
 class _StudentsScreenState extends State<StudentsScreen> {
   final TextEditingController _searchController = TextEditingController();
+  final CommunicationMethods communication = CommunicationMethods();
   String _searchQuery = "";
   String _selectedCourse = "All Courses";
   FeesStatus _selectedFeeStatus = FeesStatus.None;
@@ -664,6 +667,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       "View",
                       Icons.remove_red_eye_outlined,
                       const Color(0xFF6D5DF6),
+                      onTap: () {
+                        Get.to(() => StudentDetailsScreen(student: student));
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -672,6 +678,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       "Edit",
                       Icons.edit_outlined,
                       const Color(0xFFFF8A65),
+                      onTap: () {},
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -680,6 +687,9 @@ class _StudentsScreenState extends State<StudentsScreen> {
                       "Call",
                       Icons.call_outlined,
                       const Color(0xFF22C55E),
+                      onTap: () {
+                        communication.makeCall(student, context);
+                      },
                     ),
                   ),
                 ],
@@ -691,24 +701,32 @@ class _StudentsScreenState extends State<StudentsScreen> {
     );
   }
 
-  Widget _actionButton(String title, IconData icon, Color color) {
-    return Container(
-      height: 50,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.10),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: color.withValues(alpha: 0.12)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(icon, color: color, size: 18),
-          const SizedBox(width: 7),
-          Text(
-            title,
-            style: TextStyle(color: color, fontWeight: FontWeight.w700),
-          ),
-        ],
+  Widget _actionButton(
+    String title,
+    IconData icon,
+    Color color, {
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        height: 50,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.10),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.12)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 18),
+            const SizedBox(width: 7),
+            Text(
+              title,
+              style: TextStyle(color: color, fontWeight: FontWeight.w700),
+            ),
+          ],
+        ),
       ),
     );
   }

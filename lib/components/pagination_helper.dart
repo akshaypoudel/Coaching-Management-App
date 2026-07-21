@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 
-/// Generic helper that handles page-slicing logic for any list type.
-/// Works with students, fee records, messages — anything.
 class Paginator<T> {
   final List<T> items;
   final int itemsPerPage;
@@ -55,13 +53,11 @@ class Paginator<T> {
   }
 }
 
-/// Reusable pagination bar UI — used across Students, Fees Management,
-/// and Messages screens.
 class PaginationBar extends StatelessWidget {
-  final int currentPage; // 0-indexed
+  final int currentPage;
   final int totalPages;
-  final int startIndex; // 0-indexed
-  final int endIndex; // exclusive
+  final int startIndex;
+  final int endIndex;
   final int totalCount;
   final VoidCallback onFirst;
   final VoidCallback onPrevious;

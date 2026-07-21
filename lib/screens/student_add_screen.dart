@@ -444,7 +444,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     }
 
     try {
-      provider.updateStudent(
+      await provider.updateStudent(
         rollNumberController.text,
         StudentModel(
           rollNumber: rollNumberController.text.trim(),
