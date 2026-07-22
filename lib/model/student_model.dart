@@ -170,6 +170,7 @@ class StudentModel {
 
   Map<String, dynamic> toUpdateJson() {
     return {
+      "roll_number": rollNumber,
       "name": name,
       "father_name": fatherName,
       "parents_phone": parentsPhone,

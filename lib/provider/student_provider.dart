@@ -169,10 +169,21 @@ class StudentProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> updateStudent(
-    String rollNum,
-    StudentModel updatedStudent,
-  ) async {}
+  Future<void> updateStudent(String rollNum, StudentModel student) async {
+    try {
+      final updatedStudent = await ApiService.updateStudent(student);
+
+      final index = students.indexWhere((e) => e.rollNumber == rollNum);
+
+      if (index != -1) {
+        students[index] = updatedStudent;
+      }
+
+      notifyListeners();
+    } catch (e) {
+      rethrow;
+    }
+  }
 
   StudentModel? getStudentById(String id) {
     try {

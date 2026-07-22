@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -7,8 +8,9 @@ import 'package:stdent_management_system/provider/student_provider.dart';
 
 class AddStudentScreen extends StatefulWidget {
   final StudentModel? student;
+  final bool isEditing;
 
-  const AddStudentScreen({super.key, this.student});
+  const AddStudentScreen({super.key, this.student, required this.isEditing});
 
   @override
   State<AddStudentScreen> createState() => _AddStudentScreenState();
@@ -37,6 +39,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
   DateTime? joiningDate;
 
   BatchTiming selectedBatch = BatchTiming.Morning;
+
+  bool isLoading = false;
 
   @override
   void initState() {
@@ -127,237 +131,311 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             end: Alignment.bottomRight,
           ),
         ),
-        child: SafeArea(
-          child: Column(
-            children: [
-              _buildAppBar(),
-              Expanded(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        _buildHeroCard(),
-                        const SizedBox(height: 22),
+        child: Stack(
+          children: [
+            SafeArea(
+              child: Column(
+                children: [
+                  _buildAppBar(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            (widget.isEditing)
+                                ? SizedBox.shrink()
+                                : _buildHeroCard(),
+                            (widget.isEditing)
+                                ? SizedBox.shrink()
+                                : const SizedBox(height: 22),
 
-                        _sectionCard(
-                          title: "Personal Details",
-                          icon: Icons.person_outline_rounded,
-                          child: Column(
-                            children: [
-                              _modernTextField(
-                                controller: rollNumberController,
-                                label: "Roll Number",
-                                hint: "Enter Roll Number",
-                                icon: Icons.badge_outlined,
-                              ),
-                              _modernTextField(
-                                controller: nameController,
-                                label: "Student Name",
-                                hint: "Enter full name",
-                                icon: Icons.badge_outlined,
-                              ),
-                              _modernTextField(
-                                controller: fatherNameController,
-                                label: "Father Name",
-                                hint: "Enter father name",
-                                icon: Icons.family_restroom_outlined,
-                              ),
-                              _modernTextField(
-                                controller: phoneController,
-                                label: "Student Phone",
-                                hint: "10 digit number",
-                                icon: Icons.call_outlined,
-                                keyboard: TextInputType.phone,
-                              ),
-
-                              _modernTextField(
-                                controller: parentsPhoneController,
-                                label: "Parent Phone",
-                                hint: "10 digit number",
-                                icon: Icons.phone_android_outlined,
-                                keyboard: TextInputType.phone,
-                              ),
-                              _modernTextField(
-                                controller: emailController,
-                                label: "Email Address",
-                                hint: "Enter email",
-                                icon: Icons.email_outlined,
-                                keyboard: TextInputType.emailAddress,
-                              ),
-                              _modernTextField(
-                                controller: addressController,
-                                label: "Address",
-                                hint: "Enter address",
-                                icon: Icons.location_on_outlined,
-                                maxLines: 3,
-                              ),
-                              const SizedBox(height: 4),
-                              _modernDropdownField<Gender>(
-                                label: "Gender",
-                                value: selectedGender,
-                                icon: Icons.wc_rounded,
-                                entries: Gender.values
-                                    .map(
-                                      (e) => DropdownMenuEntry<Gender>(
-                                        value: e,
-                                        label: e.name,
-                                      ),
-                                    )
-                                    .toList(),
-                                onSelected: (value) {
-                                  if (value != null) {
-                                    setState(() => selectedGender = value);
-                                  }
-                                },
-                              ),
-                              const SizedBox(height: 14),
-                              Row(
+                            _sectionCard(
+                              title: "Personal Details",
+                              icon: Icons.person_outline_rounded,
+                              child: Column(
                                 children: [
-                                  Expanded(
-                                    child: _datePickerCard(
-                                      title: "Date of Birth",
-                                      value: _formatDate(dob),
-                                      icon: Icons.cake_outlined,
-                                      onTap: _pickDob,
-                                    ),
+                                  (widget.isEditing)
+                                      ? SizedBox.shrink()
+                                      : _modernTextField(
+                                          controller: rollNumberController,
+                                          label: "Roll Number",
+                                          hint: "Enter Roll Number",
+                                          icon: Icons.badge_outlined,
+                                        ),
+                                  _modernTextField(
+                                    controller: nameController,
+                                    label: "Student Name",
+                                    hint: "Enter full name",
+                                    icon: Icons.badge_outlined,
                                   ),
-                                  const SizedBox(width: 12),
-                                  Expanded(
-                                    child: _datePickerCard(
-                                      title: "Joining Date",
-                                      value: _formatDate(joiningDate),
-                                      icon: Icons.calendar_month_rounded,
-                                      onTap: _pickJoiningDate,
-                                    ),
+                                  _modernTextField(
+                                    controller: fatherNameController,
+                                    label: "Father Name",
+                                    hint: "Enter father name",
+                                    icon: Icons.family_restroom_outlined,
                                   ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 18),
-                        _sectionCard(
-                          title: "Academic Details",
-                          icon: Icons.school_outlined,
-                          child: Column(
-                            children: [
-                              _modernTextField(
-                                controller: courseController,
-                                label: "Course Name",
-                                hint: "JEE / NEET / Foundation",
-                                icon: Icons.menu_book_outlined,
-                              ),
-                              _modernDropdownField<BatchTiming>(
-                                label: "Batch Time",
-                                value: selectedBatch,
-                                icon: Icons.schedule_rounded,
-                                entries: const [
-                                  DropdownMenuEntry(
-                                    value: BatchTiming.Morning,
-                                    label: "Morning",
+                                  _modernTextField(
+                                    controller: phoneController,
+                                    label: "Student Phone",
+                                    hint: "10 digit number",
+                                    icon: Icons.call_outlined,
+                                    keyboard: TextInputType.phone,
                                   ),
-                                  DropdownMenuEntry(
-                                    value: BatchTiming.Evening,
-                                    label: "Evening",
+
+                                  _modernTextField(
+                                    controller: parentsPhoneController,
+                                    label: "Parent Phone",
+                                    hint: "10 digit number",
+                                    icon: Icons.phone_android_outlined,
+                                    keyboard: TextInputType.phone,
                                   ),
-                                ],
-                                onSelected: (value) {
-                                  if (value != null) {
-                                    setState(() => selectedBatch = value);
-                                  }
-                                },
-                              ),
-                              const SizedBox(height: 14),
-                              _modernDropdownField<StudentStatus>(
-                                label: "Student Status",
-                                value: studentStatus,
-                                icon: Icons.verified_user_outlined,
-                                entries: StudentStatus.values
-                                    .map(
-                                      (e) => DropdownMenuEntry<StudentStatus>(
-                                        value: e,
-                                        label: e.name,
+                                  _modernTextField(
+                                    controller: emailController,
+                                    label: "Email Address",
+                                    hint: "Enter email",
+                                    icon: Icons.email_outlined,
+                                    keyboard: TextInputType.emailAddress,
+                                  ),
+                                  _modernTextField(
+                                    controller: addressController,
+                                    label: "Address",
+                                    hint: "Enter address",
+                                    icon: Icons.location_on_outlined,
+                                    maxLines: 3,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  _modernDropdownField<Gender>(
+                                    label: "Gender",
+                                    value: selectedGender,
+                                    icon: Icons.wc_rounded,
+                                    entries: Gender.values
+                                        .map(
+                                          (e) => DropdownMenuEntry<Gender>(
+                                            value: e,
+                                            label: e.name,
+                                          ),
+                                        )
+                                        .toList(),
+                                    onSelected: (value) {
+                                      if (value != null) {
+                                        setState(() => selectedGender = value);
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(height: 14),
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        child: _datePickerCard(
+                                          title: "Date of Birth",
+                                          value: _formatDate(dob),
+                                          icon: Icons.cake_outlined,
+                                          onTap: _pickDob,
+                                        ),
                                       ),
-                                    )
-                                    .toList(),
-                                onSelected: (value) {
-                                  if (value != null) {
-                                    setState(() => studentStatus = value);
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 18),
-
-                        _sectionCard(
-                          title: "Fees Details",
-                          icon: Icons.account_balance_wallet_outlined,
-                          child: Column(
-                            children: [
-                              _modernTextField(
-                                controller: totalFeesController,
-                                label: "Total Fees",
-                                hint: "Enter total fees",
-                                icon: Icons.currency_rupee_rounded,
-                                keyboard: TextInputType.number,
-                              ),
-                              _modernTextField(
-                                controller: feesPaidController,
-                                label: "Fees Paid",
-                                hint: "Enter paid amount",
-                                icon: Icons.payments_outlined,
-                                keyboard: TextInputType.number,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        _summaryCard(),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 58,
-                          child: ElevatedButton.icon(
-                            style: ElevatedButton.styleFrom(
-                              elevation: 0,
-                              backgroundColor: const Color(0xFF6D5DF6),
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
+                                      const SizedBox(width: 12),
+                                      Expanded(
+                                        child: _datePickerCard(
+                                          title: "Joining Date",
+                                          value: _formatDate(joiningDate),
+                                          icon: Icons.calendar_month_rounded,
+                                          onTap: _pickJoiningDate,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
                               ),
                             ),
-                            onPressed: () {
-                              if (widget.student == null) {
-                                addStudent(provider);
-                              } else {
-                                updateStudent(provider);
-                              }
-                            },
-                            icon: const Icon(Icons.person_add_alt_1_rounded),
-                            label: Text(
-                              (widget.student == null)
-                                  ? "Add Student"
-                                  : "Update Student",
+                            const SizedBox(height: 18),
+                            _sectionCard(
+                              title: "Academic Details",
+                              icon: Icons.school_outlined,
+                              child: Column(
+                                children: [
+                                  _modernTextField(
+                                    controller: courseController,
+                                    label: "Course Name",
+                                    hint: "JEE / NEET / Foundation",
+                                    icon: Icons.menu_book_outlined,
+                                  ),
+                                  _modernDropdownField<BatchTiming>(
+                                    label: "Batch Time",
+                                    value: selectedBatch,
+                                    icon: Icons.schedule_rounded,
+                                    entries: const [
+                                      DropdownMenuEntry(
+                                        value: BatchTiming.Morning,
+                                        label: "Morning",
+                                      ),
+                                      DropdownMenuEntry(
+                                        value: BatchTiming.Evening,
+                                        label: "Evening",
+                                      ),
+                                    ],
+                                    onSelected: (value) {
+                                      if (value != null) {
+                                        setState(() => selectedBatch = value);
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(height: 14),
+                                  _modernDropdownField<StudentStatus>(
+                                    label: "Student Status",
+                                    value: studentStatus,
+                                    icon: Icons.verified_user_outlined,
+                                    entries: StudentStatus.values
+                                        .map(
+                                          (e) =>
+                                              DropdownMenuEntry<StudentStatus>(
+                                                value: e,
+                                                label: e.name,
+                                              ),
+                                        )
+                                        .toList(),
+                                    onSelected: (value) {
+                                      if (value != null) {
+                                        setState(() => studentStatus = value);
+                                      }
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 18),
+
+                            _sectionCard(
+                              title: "Fees Details",
+                              icon: Icons.account_balance_wallet_outlined,
+                              child: Column(
+                                children: [
+                                  _modernTextField(
+                                    controller: totalFeesController,
+                                    label: "Total Fees",
+                                    hint: "Enter total fees",
+                                    icon: Icons.currency_rupee_rounded,
+                                    keyboard: TextInputType.number,
+                                  ),
+                                  _modernTextField(
+                                    controller: feesPaidController,
+                                    label: "Fees Paid",
+                                    hint: "Enter paid amount",
+                                    icon: Icons.payments_outlined,
+                                    keyboard: TextInputType.number,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            _summaryCard(),
+                            const SizedBox(height: 24),
+                            SizedBox(
+                              width: double.infinity,
+                              height: 58,
+                              child: ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  elevation: 0,
+                                  backgroundColor: const Color(0xFF6D5DF6),
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  if (widget.student == null) {
+                                    addStudent(provider);
+                                  } else {
+                                    updateStudent(provider);
+                                  }
+                                },
+                                icon: const Icon(
+                                  Icons.person_add_alt_1_rounded,
+                                ),
+                                label: Text(
+                                  (widget.isEditing)
+                                      ? "Update Student"
+                                      : "Add Student",
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 20),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isLoading)
+              Positioned.fill(
+                child: AbsorbPointer(
+                  child: Container(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    child: Center(
+                      child: Container(
+                        width: 230,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 26,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.96),
+                          borderRadius: BorderRadius.circular(24),
+                          border: Border.all(color: Colors.white, width: 1.5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 30,
+                              offset: const Offset(0, 15),
+                            ),
+                          ],
+                        ),
+                        child: const Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            SizedBox(
+                              width: 42,
+                              height: 42,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 3,
+                                color: Colors.deepPurple,
+                              ),
+                            ),
+                            SizedBox(height: 20),
+                            Text(
+                              "Updating Student Details...",
                               style: TextStyle(
                                 fontSize: 17,
-                                fontWeight: FontWeight.w800,
+                                fontWeight: FontWeight.w700,
+                                color: Color(0xFF111827),
                               ),
                             ),
-                          ),
+                            SizedBox(height: 8),
+                            Text(
+                              "Please wait while we update the Student Details.",
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Color(0xFF6B7280),
+                                height: 1.4,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 20),
-                      ],
+                      ),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+          ],
         ),
       ),
     );
@@ -375,6 +453,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
       return;
     }
 
+    setState(() => isLoading = true);
     try {
       final totalFees = double.tryParse(totalFeesController.text.trim()) ?? 0;
 
@@ -422,6 +501,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
       Get.back();
     } catch (e) {
+      setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst("Exception: ", "")),
@@ -442,6 +522,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    setState(() => isLoading = true);
 
     try {
       await provider.updateStudent(
@@ -471,6 +552,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
 
       Get.back();
     } catch (e) {
+      log(e.toString());
+      setState(() => isLoading = false);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString().replaceFirst("Exception: ", "")),
@@ -490,12 +573,12 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             onTap: () => Navigator.pop(context),
           ),
           const SizedBox(width: 14),
-          const Expanded(
+          Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  "Add Student",
+                  (widget.isEditing) ? "Update Student" : "Add Student",
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
@@ -816,8 +899,8 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  "Ready to save",
+                Text(
+                  (widget.isEditing) ? "Ready to update" : "Ready to save",
                   style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
@@ -826,7 +909,10 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Review details once before creating the student profile.",
+                  (widget.isEditing)
+                      ? "Review details once before updating the student profile."
+                      : "Review details once before saving the student profile.",
+
                   style: TextStyle(
                     color: Colors.white.withValues(alpha: 0.72),
                     fontSize: 13,

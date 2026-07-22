@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:stdent_management_system/components/custom_drawer.dart';
 import 'package:stdent_management_system/screens/communication_screen.dart';
 import 'package:stdent_management_system/screens/fees_management_screen.dart';
 import 'package:stdent_management_system/screens/student_dashboard_screen.dart';
@@ -15,18 +16,14 @@ class CustomBottomNavigationBar extends StatefulWidget {
 }
 
 class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
+  final GlobalKey<ScaffoldState> scaffoldKey = GlobalKey<ScaffoldState>();
   int _selectedIndex = 0;
 
   static const double _navVisualHeight = 78;
   static const double _navBottomGap = 14;
   static const double _pageBottomInset = _navBottomGap * 2 + 20;
 
-  final List<Widget> _pages = const [
-    StudentDashboardScreen(),
-    StudentsScreen(),
-    FeesManagementScreen(),
-    CommunicationScreen(),
-  ];
+  late List<Widget> pages = [];
 
   final List<_NavItemData> _items = [
     _NavItemData(label: 'Dashboard', icon: FontAwesomeIcons.chartSimple.data),
@@ -36,10 +33,29 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
   ];
 
   @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    pages = [
+      StudentDashboardScreen(
+        onDrawerOpened: () {
+          scaffoldKey.currentState?.openDrawer();
+        },
+      ),
+      const StudentsScreen(),
+      const FeesManagementScreen(),
+      const CommunicationScreen(),
+    ];
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
+      key: scaffoldKey,
       backgroundColor: const Color(0xFFF6F8FC),
       extendBody: true,
+      drawer: InstituteDrawer(onExport: () {}, onImport: () {}),
+
       body: Stack(
         children: [
           Positioned.fill(
@@ -47,11 +63,11 @@ class _CustomBottomNavigationBarState extends State<CustomBottomNavigationBar> {
               padding: const EdgeInsets.only(bottom: _pageBottomInset),
               child: IndexedStack(
                 index: _selectedIndex,
-                children: _pages
+                children: pages
                     .map(
                       (page) => _PageBottomSafeWrapper(
-                        child: page,
                         bottomInset: _pageBottomInset,
+                        child: page,
                       ),
                     )
                     .toList(),

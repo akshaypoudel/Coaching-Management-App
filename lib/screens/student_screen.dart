@@ -115,7 +115,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
           elevation: 0,
           backgroundColor: Colors.transparent,
           onPressed: () {
-            Get.to(() => AddStudentScreen());
+            Get.to(() => AddStudentScreen(isEditing: false));
           },
           icon: const Icon(Icons.add_rounded, color: Colors.white),
           label: const Text(
@@ -559,143 +559,232 @@ class _StudentsScreenState extends State<StudentsScreen> {
   }
 
   Widget _studentCard(StudentModel student) {
-    final Color accent = Colors.orangeAccent;
+    final bool feesPending = student.feeStatus == FeesStatus.Due;
+
+    // Same multi-stop gradient scheme as the communication screen
+    final List<Color> cardGradient = feesPending
+        ? [const Color(0xFFFFF3EC), const Color(0xFFFFE8DC)]
+        : [const Color(0xFFF1FBF5), const Color(0xFFE8F9EF)];
+
+    final Color accentColor = feesPending
+        ? const Color(0xFFFF7A45)
+        : const Color(0xFF22C55E);
+
+    final List<Color> avatarGradient = feesPending
+        ? [const Color(0xFFFF8A65), const Color(0xFFFF5E62)]
+        : [const Color(0xFF6D5DF6), const Color(0xFF22C1C3)];
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(28),
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
         child: Container(
-          padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.82),
             borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: Colors.white),
+            border: Border.all(color: accentColor.withValues(alpha: 0.25)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
+                color: accentColor.withValues(alpha: 0.16),
                 blurRadius: 20,
-                offset: const Offset(0, 12),
+                offset: const Offset(0, 10),
               ),
             ],
           ),
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Container(
-                    height: 62,
-                    width: 62,
+          child: IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                // Left accent strip — matches communication screen style
+                Container(
+                  width: 5,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: avatarGradient,
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [accent, accent.withValues(alpha: 0.75)],
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accent.withValues(alpha: 0.24),
-                          blurRadius: 16,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Text(
-                        student.name[0],
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                          fontWeight: FontWeight.w800,
-                        ),
+                        colors: cardGradient,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 14),
-                  Expanded(
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          student.name,
-                          style: const TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 17,
-                            color: Color(0xFF111827),
-                          ),
+                        Row(
+                          children: [
+                            Container(
+                              height: 62,
+                              width: 62,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  colors: avatarGradient,
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: avatarGradient.first.withValues(
+                                      alpha: 0.45,
+                                    ),
+                                    blurRadius: 16,
+                                    offset: const Offset(0, 8),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Text(
+                                  student.name[0].toUpperCase(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    student.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 17,
+                                      color: Color(0xFF111827),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    student.course,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      color: Color(0xFF6B7280),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            _feeStatus(student.feeStatus.name),
+                          ],
                         ),
-                        const SizedBox(height: 6),
-                        Text(
-                          student.course,
-                          style: const TextStyle(
-                            color: Color(0xFF6B7280),
-                            fontWeight: FontWeight.w500,
-                          ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Expanded(
+                              flex: 3,
+                              child: _metaTile(
+                                icon: Icons.badge_outlined,
+                                label: "Roll No.",
+                                value: student.rollNumber,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Expanded(
+                              flex: 4,
+                              child: _metaTile(
+                                icon: Icons.call_outlined,
+                                label: "Phone",
+                                value: student.phone,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 18),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: _actionButton(
+                                "View",
+                                Icons.remove_red_eye_outlined,
+                                const Color(0xFF7C3AED), // matches Call purple
+                                onTap: () {
+                                  Get.to(
+                                    () =>
+                                        StudentDetailsScreen(student: student),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _actionButton(
+                                "Edit",
+                                Icons.edit_outlined,
+                                const Color(0xFF2563EB), // matches SMS blue
+                                onTap: () {
+                                  Get.to(
+                                    () => AddStudentScreen(
+                                      isEditing: true,
+                                      student: student,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: _actionButton(
+                                "Call",
+                                Icons.call_outlined,
+                                const Color(
+                                  0xFF16A34A,
+                                ), // matches WhatsApp green
+                                onTap: () {
+                                  communication.makeCall(student, context);
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
                   ),
-                  _feeStatus(student.feeStatus.name),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 3,
-                    child: _metaTile(
-                      icon: Icons.badge_outlined,
-                      label: "Roll No.",
-                      value: student.rollNumber,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
-                  Expanded(
-                    flex: 4,
-                    child: _metaTile(
-                      icon: Icons.call_outlined,
-                      label: "Phone",
-                      value: student.phone,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  Expanded(
-                    child: _actionButton(
-                      "View",
-                      Icons.remove_red_eye_outlined,
-                      const Color(0xFF6D5DF6),
-                      onTap: () {
-                        Get.to(() => StudentDetailsScreen(student: student));
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _actionButton(
-                      "Edit",
-                      Icons.edit_outlined,
-                      const Color(0xFFFF8A65),
-                      onTap: () {},
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: _actionButton(
-                      "Call",
-                      Icons.call_outlined,
-                      const Color(0xFF22C55E),
-                      onTap: () {
-                        communication.makeCall(student, context);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
+        ),
+      ),
+    );
+  }
+
+  // Maps fee status to a distinct color — adjust cases to match your enum
+  Widget _feeStatus(String status) {
+    final bool pending = status == "Due";
+    final Color color = pending
+        ? const Color(0xFFFF7A45)
+        : const Color(0xFF22C55E);
+    final Color bg = pending
+        ? const Color(0xFFFFE8DC)
+        : const Color(0xFFE8F9EF);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
         ),
       ),
     );
@@ -784,7 +873,7 @@ class _StudentsScreenState extends State<StudentsScreen> {
     );
   }
 
-  Widget _feeStatus(String status) {
+  Widget _feeStatus11(String status) {
     Color color = const Color(0xFF16A34A);
     Color bg = const Color(0xFFDCFCE7);
 

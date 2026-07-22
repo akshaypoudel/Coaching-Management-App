@@ -6,13 +6,15 @@ import 'package:flutter_sms/flutter_sms.dart';
 import 'package:get/get.dart';
 import 'package:provider/provider.dart';
 import 'package:stdent_management_system/components/app_currency_formatter.dart';
+import 'package:stdent_management_system/components/custom_drawer.dart';
 import 'package:stdent_management_system/model/student_model.dart';
 import 'package:stdent_management_system/provider/student_provider.dart';
 import 'package:stdent_management_system/screens/student_add_screen.dart';
 import 'package:stdent_management_system/screens/student_details_screen.dart';
 
 class StudentDashboardScreen extends StatefulWidget {
-  const StudentDashboardScreen({super.key});
+  final VoidCallback onDrawerOpened;
+  const StudentDashboardScreen({super.key, required this.onDrawerOpened});
 
   @override
   State<StudentDashboardScreen> createState() => _StudentDashboardScreenState();
@@ -60,9 +62,9 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTopBar(),
-                // const SizedBox(height: 20),
-                // _buildSearchBar(context),
-                // const SizedBox(height: 20),
+                const SizedBox(height: 20),
+                _buildSearchBar(context),
+                const SizedBox(height: 20),
                 const SizedBox(height: 16),
                 _buildSectionDivider(),
                 const SizedBox(height: 14),
@@ -130,7 +132,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                         icon: Icons.person_add_alt_1_rounded,
                         color: const Color(0xFF6C63FF),
                         onTap: () {
-                          Get.to(() => AddStudentScreen());
+                          Get.to(() => AddStudentScreen(isEditing: false));
                         },
                       ),
                     ),
@@ -224,29 +226,31 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        // Institute badge + name
-        Container(
-          height: 42,
-          width: 42,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(13),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF0D9488).withValues(alpha: 0.28),
-                blurRadius: 12,
-                offset: const Offset(0, 6),
+        GestureDetector(
+          onTap: widget.onDrawerOpened,
+          child: Container(
+            height: 42,
+            width: 42,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(13),
+              gradient: const LinearGradient(
+                colors: [Color(0xFF0D9488), Color(0xFF14B8A6)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
-            ],
-          ),
-          child: const Icon(
-            Icons.school_rounded,
-            color: Colors.white,
-            size: 22,
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.28),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.school_rounded,
+              color: Colors.white,
+              size: 22,
+            ),
           ),
         ),
         const SizedBox(width: 10),
@@ -256,7 +260,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Institute",
+                "DeityCoach",
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(

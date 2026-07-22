@@ -43,7 +43,6 @@ class _SplashScreenState extends State<SplashScreen> {
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
       );
-
       return;
     }
 
@@ -59,6 +58,67 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    return Scaffold(
+      body: Container(
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xffF7F9FF), Color(0xffEEF3FF)],
+          ),
+        ),
+        child: SafeArea(
+          child: Column(
+            children: [
+              const Spacer(),
+
+              // Illustration
+              Image.asset("assets/images/splash.png", height: 230),
+
+              const SizedBox(height: 40),
+
+              const Text(
+                "DeityCoach",
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1,
+                  color: Color(0xff1E293B),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              Text(
+                "Smart Institute Management Platform",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 16, color: Colors.grey.shade700),
+              ),
+
+              const Spacer(),
+
+              const SizedBox(
+                width: 32,
+                height: 32,
+                child: CircularProgressIndicator(
+                  strokeWidth: 3,
+                  color: Color(0xff4F46E5),
+                ),
+              ),
+
+              const SizedBox(height: 18),
+
+              Text(
+                "Loading...",
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 15),
+              ),
+
+              const SizedBox(height: 40),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

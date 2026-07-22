@@ -293,7 +293,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
         _glassButton(
           icon: Icons.edit_rounded,
           onTap: () {
-            Get.to(() => AddStudentScreen(student: student));
+            Get.to(() => AddStudentScreen(student: student, isEditing: false));
           },
         ),
       ],
@@ -305,6 +305,14 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
     required bool isActive,
     required bool isFeePaid,
   }) {
+    final List<Color> heroGradient = isFeePaid
+        ? [const Color(0xFF34D399), const Color(0xFF22C55E)]
+        : [const Color(0xFFFFA477), const Color(0xFFFF7A45)];
+
+    final Color glowColor = isFeePaid
+        ? const Color(0xFF22C55E)
+        : const Color(0xFFFF7A45);
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(30),
       child: BackdropFilter(
@@ -314,14 +322,14 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
           padding: const EdgeInsets.all(22),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
-            gradient: const LinearGradient(
-              colors: [Color(0xFF6D5DF6), Color(0xFF8B5CF6), Color(0xFF4F8CFF)],
+            gradient: LinearGradient(
+              colors: heroGradient,
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF6D5DF6).withValues(alpha: 0.25),
+                color: glowColor.withValues(alpha: 0.25),
                 blurRadius: 24,
                 offset: const Offset(0, 12),
               ),
@@ -374,6 +382,13 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                           color: Colors.white,
                           fontSize: 34,
                           fontWeight: FontWeight.w900,
+                          shadows: [
+                            Shadow(
+                              color: Colors.black26,
+                              blurRadius: 6,
+                              offset: Offset(0, 2),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -386,6 +401,13 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                       color: Colors.white,
                       fontSize: 21,
                       fontWeight: FontWeight.w800,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 6),
@@ -396,6 +418,13 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                       color: Colors.white.withValues(alpha: 0.84),
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
+                      shadows: [
+                        Shadow(
+                          color: Colors.black26,
+                          blurRadius: 6,
+                          offset: Offset(0, 2),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -409,20 +438,30 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                             ? "Active Student"
                             : student.studentStatus.name,
                         color: isActive
-                            ? const Color(0xFF22C55E)
-                            : const Color(0xFFFF8A65),
+                            ? const Color(
+                                0xFF22C55E,
+                              ) // green = active, matches your app's "positive" color
+                            : const Color(
+                                0xFFFF8A65,
+                              ), // coral = inactive, matches your app's "attention" color
                       ),
                       _statusChip(
                         text: isFeePaid
                             ? "Fees Paid"
                             : 'Fees ${student.feeStatus.name}',
                         color: isFeePaid
-                            ? const Color(0xFF22C55E)
-                            : const Color(0xFFFFA726),
+                            ? const Color(
+                                0xFF22C55E,
+                              ) // green = paid, consistent with Active chip above
+                            : const Color(
+                                0xFFFF8A65,
+                              ), // coral = due, consistent with Inactive chip above
                       ),
                       _statusChip(
                         text: '${student.batchTime.name} Batch',
-                        color: const Color(0xFF60A5FA),
+                        color: const Color(
+                          0xFF60A5FA,
+                        ), // soft blue, neutral info tag — matches your metric card "Batch" icon color
                       ),
                     ],
                   ),
@@ -525,6 +564,32 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget feeStatus(String status) {
+    final bool pending = status == "Due";
+    final Color color = pending
+        ? const Color(0xFFFF7A45)
+        : const Color(0xFF22C55E);
+    final Color bg = pending
+        ? const Color(0xFFFFE8DC)
+        : const Color(0xFFE8F9EF);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: Text(
+        status,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.w700,
+          fontSize: 12,
         ),
       ),
     );
@@ -1095,17 +1160,34 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.18),
+        color: Colors.white.withValues(alpha: 0.9),
         borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: color.withValues(alpha: 0.18)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
       ),
-      child: Text(
-        text,
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w700,
-          fontSize: 11,
-        ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            height: 7,
+            width: 7,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: color),
+          ),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: TextStyle(
+              color: color,
+              fontWeight: FontWeight.w700,
+              fontSize: 11,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -1124,6 +1206,9 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
           color: Colors.white,
           fontWeight: FontWeight.w700,
           fontSize: 11,
+          shadows: [
+            Shadow(color: Colors.black26, blurRadius: 6, offset: Offset(0, 2)),
+          ],
         ),
       ),
     );
@@ -1150,6 +1235,13 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                   color: Colors.white.withValues(alpha: 0.78),
                   fontSize: 11,
                   fontWeight: FontWeight.w500,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(height: 5),
@@ -1161,6 +1253,13 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
                   color: Colors.white,
                   fontSize: 14.5,
                   fontWeight: FontWeight.w800,
+                  shadows: [
+                    Shadow(
+                      color: Colors.black26,
+                      blurRadius: 6,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
                 ),
               ),
             ],
