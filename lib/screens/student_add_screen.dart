@@ -398,7 +398,7 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                             ),
                           ],
                         ),
-                        child: const Column(
+                        child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             SizedBox(
@@ -411,7 +411,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                             ),
                             SizedBox(height: 20),
                             Text(
-                              "Updating Student Details...",
+                              (widget.isEditing)
+                                  ? "Updating Student Details..."
+                                  : "Adding New Student",
                               style: TextStyle(
                                 fontSize: 17,
                                 fontWeight: FontWeight.w700,
@@ -420,7 +422,9 @@ class _AddStudentScreenState extends State<AddStudentScreen> {
                             ),
                             SizedBox(height: 8),
                             Text(
-                              "Please wait while we update the Student Details.",
+                              (widget.isEditing)
+                                  ? "Please wait while we update the Student Details."
+                                  : "Please wait while we add the student to the system.",
                               textAlign: TextAlign.center,
                               style: TextStyle(
                                 fontSize: 13,
