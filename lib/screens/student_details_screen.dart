@@ -293,7 +293,7 @@ class _StudentDetailsScreenState extends State<StudentDetailsScreen> {
         _glassButton(
           icon: Icons.edit_rounded,
           onTap: () {
-            Get.to(() => AddStudentScreen(student: student, isEditing: false));
+            Get.to(() => AddStudentScreen(student: student, isEditing: true));
           },
         ),
       ],

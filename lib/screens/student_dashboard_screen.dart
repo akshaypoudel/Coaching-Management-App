@@ -62,10 +62,10 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildTopBar(),
+                // const SizedBox(height: 20),
+                // _buildSearchBar(context),
                 const SizedBox(height: 20),
-                _buildSearchBar(context),
-                const SizedBox(height: 20),
-                const SizedBox(height: 16),
+                // const SizedBox(height: 16),
                 _buildSectionDivider(),
                 const SizedBox(height: 14),
 
